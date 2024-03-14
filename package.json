@@ -1,6 +1,6 @@
 {
   "name": "@quietui/localize",
-  "version": "3.1.2",
+  "version": "1.0.0",
   "description": "A tiny, zero-dependency library that provides a Reactive Controller for localizing terms, dates, and numbers, and currency across one or more custom elements in a component library.",
   "main": "dist/index.js",
   "module": "dist/index.js",
