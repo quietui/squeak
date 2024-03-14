@@ -1,15 +1,15 @@
-# Localize
+# Squeak
 
-This tiny, zero-dependency library provides a [Reactive Controller](https://lit.dev/docs/composition/controllers/) for localizing terms, dates, and numbers, and currency across one or more custom elements in a component library. It _does not_ aim to replicate a full-blown localization tool. For that, you should use something like [i18next](https://www.i18next.com/). 
+Squeak is a tiny, zero-dependency library that provides a [Reactive Controller](https://lit.dev/docs/composition/controllers/) for localizing terms, dates, and numbers, and currency across one or more custom elements in a component library. It _does not_ aim to replicate a full-blown localization tool. For that, you should use something like [i18next](https://www.i18next.com/). 
 
 Reactive Controllers are supported by Lit out of the box, but they're designed to be generic so other libraries can elect to support them either natively or through an adapter. If you're favorite custom element authoring library doesn't support Reactive Controllers yet, consider asking the maintainers to add support for them!
 
 ## Overview
 
-Here's an example of how this library can be used to create a localized custom element with Lit.
+Here's an example of how Squeak can be used to create a localized custom element with Lit.
 
 ```ts
-import { Localize, registerTranslation } from '@quietui/localize';
+import { Localize, registerTranslation } from '@quietui/squeak';
 
 // Note: translations can also be lazy loaded (see "Registering Translations" below)
 import en from '../translations/en';
@@ -41,7 +41,7 @@ To set the page locale, apply the desired `lang` attribute to the `<html>` eleme
 
 Changes to `<html lang>` will trigger an update to all localized components automatically.
 
-## Why this instead of a proper i18n library?
+## Why use Squeak instead of a proper i18n library?
 
 It's not uncommon for a custom element to require localization, but implementing it at the component level is challenging. For example, how should we provide a translation for this close button that exists in a custom element's shadow root?
 
@@ -89,7 +89,7 @@ Fortunately, the majority of use cases appear to favor a single language per pag
 First, install the library.
 
 ```bash
-npm install @quietui/localize
+npm install @quietui/squeak
 ```
 
 Next, follow these steps to localize your components.
@@ -104,7 +104,7 @@ All translations must extend the `Translation` type and implement the required m
 
 ```ts
 // en.ts
-import type { Translation } from '@quietui/localize';
+import type { Translation } from '@quietui/squeak';
 
 const translation: Translation = {
   $code: 'en',
@@ -133,7 +133,7 @@ export default translation;
 Once you've created a translation, you need to register it before use. The first translation you register should be the default translation. The default translation acts as a fallback in case a term can't be found in another translation. As such, the default translation should be assumed to be complete at all times.
 
 ```ts
-import { registerDefaultTranslation } from '@quietui/localize';
+import { registerDefaultTranslation } from '@quietui/squeak';
 import en from './en.js';
 
 registerDefaultTranslation(en);
@@ -142,7 +142,7 @@ registerDefaultTranslation(en);
 To register additional translations, call the `registerTranslation()` method. This example imports and register two more translations up front.
 
 ```ts
-import { registerTranslation } from '@quietui/localize';
+import { registerTranslation } from '@quietui/squeak';
 import es from './es.js';
 import ru from './ru.js';
 
@@ -158,7 +158,7 @@ It's important to note that translations _do not_ have to be registered up front
 Here's a sample function that dynamically loads a translation.
 
 ```ts
-import { registerTranslation } from '@quietui/localize';
+import { registerTranslation } from '@quietui/squeak';
 
 async function changeLanguage(lang) {
   const availableTranslations = ['en', 'es', 'fr', 'de'];
@@ -172,12 +172,12 @@ async function changeLanguage(lang) {
 
 ### Localizing components
 
-You can use the `Localize` controller with any library that supports [Lit's Reactive Controller pattern](https://lit.dev/docs/composition/controllers/). In Lit, a localized custom element will look something like this.
+You can use Squeak with any library that supports [Lit's Reactive Controller pattern](https://lit.dev/docs/composition/controllers/). In Lit, a localized custom element will look something like this.
 
 ```ts
 import { LitElement } from 'lit';
 import { customElement } from 'lit/decorators.js';
-import { Localize } from '@quietui/localize/dist/lit.js';
+import { Localize } from '@quietui/squeak/dist/lit.js';
 
 @customElement('my-element')
 export class MyElement extends LitElement {
@@ -223,13 +223,13 @@ Because translations are defined by the user, there's no way for TypeScript to a
 In a separate file, e.g. `my-localize.ts`, add the following code.
 
 ```ts
-import { Localize as DefaultLocalize } from '@quietui/localize';
+import { Localize as DefaultLocalize } from '@quietui/squeak';
 
 // Extend the default controller with your custom translation
 export class Localize extends DefaultLocalize<MyTranslation> {}
 
 // Export `registerTranslation` so you can import everything from this file
-export { registerTranslation } from '@quietui/localize';
+export { registerTranslation } from '@quietui/squeak';
 
 // Define your translation terms here
 export interface MyTranslation extends Translation {
