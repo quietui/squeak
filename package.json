@@ -1,0 +1,40 @@
+{
+  "name": "@quietui/localize",
+  "version": "3.1.2",
+  "description": "A tiny, zero-dependency library that provides a Reactive Controller for localizing terms, dates, and numbers, and currency across one or more custom elements in a component library.",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "type": "module",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "start": "tsc -w",
+    "build": "tsc",
+    "clean": "node ./scripts/clean.js",
+    "prebuild": "npm run clean",
+    "prepublishOnly": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/quietui/localize.git"
+  },
+  "keywords": [
+    "web components",
+    "custom elements",
+    "localization",
+    "internationalization",
+    "i18n",
+    "l10n"
+  ],
+  "author": "Cory LaViska",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/quietui/localize/issues"
+  },
+  "homepage": "https://github.com/quietui/localize#readme",
+  "devDependencies": {
+    "del": "^7.1.0",
+    "lit": "^3.1.2",
+    "prettier": "^3.2.5",
+    "typescript": "^5.3.3"
+  }
+}
