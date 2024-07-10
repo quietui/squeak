@@ -14,17 +14,24 @@ export interface ExistsOptions {
 }
 
 const connectedElements = new Set<HTMLElement>();
-const documentElementObserver = new MutationObserver(update);
 const translations: Map<string, Translation> = new Map();
-let documentDirection = document.documentElement.dir || 'ltr';
-let documentLanguage = document.documentElement.lang || navigator.language;
+const isSSR = typeof document?.documentElement === 'undefined';
+let documentDirection = 'ltr'; // SSR default
+let documentLanguage = 'en'; // SSR default
 let defaultTranslation: Translation;
 
-// Watch for changes on <html lang>
-documentElementObserver.observe(document.documentElement, {
-  attributes: true,
-  attributeFilter: ['dir', 'lang']
-});
+// Don't run this block in an SSR environment
+if (!isSSR) {
+  const documentElementObserver = new MutationObserver(update);
+  documentDirection = document.documentElement.dir || 'ltr';
+  documentLanguage = document.documentElement.lang || navigator.language;
+
+  // Watch for changes on <html lang>
+  documentElementObserver.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['dir', 'lang']
+  });
+}
 
 /** Registers the default (fallback) translation. */
 export function registerDefaultTranslation(translation: Translation) {
@@ -50,6 +57,8 @@ export function registerTranslation(...translation: Translation[]) {
 
 /** Updates all localized elements that are currently connected */
 export function update() {
+  if (isSSR) return;
+
   documentDirection = document.documentElement.dir || 'ltr';
   documentLanguage = document.documentElement.lang || navigator.language;
 
