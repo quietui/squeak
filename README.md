@@ -2,7 +2,7 @@
 
 Squeak is a tiny, zero-dependency library that provides a [Reactive Controller](https://lit.dev/docs/composition/controllers/) for localizing terms, dates, and numbers, and currency across one or more custom elements in a component library. It _does not_ aim to replicate a full-blown localization tool. For that, you should use something like [i18next](https://www.i18next.com/). 
 
-Reactive Controllers are supported by Lit out of the box, but they're designed to be generic so other libraries can elect to support them either natively or through an adapter. If you're favorite custom element authoring library doesn't support Reactive Controllers yet, consider asking the maintainers to add support for them!
+Reactive Controllers are supported by Lit out of the box, but they're designed to be generic so other libraries can elect to support them either natively or through an adapter. If your favorite custom element authoring library doesn't support Reactive Controllers yet, consider asking the maintainers to add support for them!
 
 ## Overview
 
