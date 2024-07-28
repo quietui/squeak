@@ -175,8 +175,8 @@ async function changeLanguage(lang) {
 You can use Squeak with any library that supports [Lit's Reactive Controller pattern](https://lit.dev/docs/composition/controllers/). In Lit, a localized custom element will look something like this.
 
 ```ts
-import { LitElement } from 'lit';
-import { customElement } from 'lit/decorators.js';
+import { LitElement, html } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
 import { Localize } from '@quietui/squeak/dist/lit.js';
 
 @customElement('my-element')
