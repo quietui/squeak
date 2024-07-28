@@ -177,7 +177,7 @@ You can use Squeak with any library that supports [Lit's Reactive Controller pat
 ```ts
 import { LitElement, html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { Localize } from '@quietui/squeak/dist/lit.js';
+import { Localize } from '@quietui/squeak/dist/index.js';
 
 @customElement('my-element')
 export class MyElement extends LitElement {
