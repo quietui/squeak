@@ -1,6 +1,6 @@
 # Squeak
 
-Squeak is a tiny, zero-dependency library that provides localization tools for custom elements and web applications. It includes a [Reactive Controller](https://lit.dev/docs/composition/controllers/) for Lit components, as well as a standalone class for use in any JavaScript context. It localizes terms, dates, numbers, and currency with a minimal footprint. It _does not_ aim to replicate a full-blown localization tool.
+Squeak is a tiny, zero-dependency library that provides a [Reactive Controller](https://lit.dev/docs/composition/controllers/) for localizing terms, dates, and numbers, and currency across one or more custom elements in a component library. It _does not_ aim to replicate a full-blown localization tool. For that, you should use something like [i18next](https://www.i18next.com/). 
 
 Reactive Controllers are supported by Lit out of the box, but they're designed to be generic so other libraries can elect to support them either natively or through an adapter. If your favorite custom element authoring library doesn't support Reactive Controllers yet, consider asking the maintainers to add support for them!
 
@@ -9,7 +9,7 @@ Reactive Controllers are supported by Lit out of the box, but they're designed t
 Here's an example of how Squeak can be used to create a localized custom element with Lit.
 
 ```ts
-import { LocalizeReactiveController, registerTranslation } from '@quietui/squeak';
+import { Localize, registerTranslation } from '@quietui/squeak';
 
 // Note: translations can also be lazy loaded (see "Registering Translations" below)
 import en from '../translations/en';
@@ -19,7 +19,7 @@ registerTranslation(en, es);
 
 @customElement('my-element')
 export class MyElement extends LitElement {
-  private localize = new LocalizeReactiveController(this).localize;
+  private localize = new Localize(this);
 
   @property() lang: string;
 
@@ -66,7 +66,7 @@ This is the use case this library is solving for. It is not intended to solve lo
 
 ## How it works
 
-To achieve this goal, we lean on HTML's [`lang`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/lang) attribute to determine what language should be used. The default locale is specified by `<html lang="...">`, but any localized element can be scoped to a locale by setting its `lang` attribute. This means you can have more than one language per page, if desired.
+To achieve this goal, we lean on HTML’s [`lang`](~https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/lang~) attribute to determine what language should be used. The default locale is specified by `<html lang="...">`, but any localized element can be scoped to a locale by setting its `lang` attribute. This means you can have more than one language per page, if desired.
 
 ```html
 <html lang="en">
@@ -172,24 +172,16 @@ async function changeLanguage(lang) {
 
 ### Localizing components
 
-Squeak provides two ways to localize your components:
-
-1. **`LocalizeReactiveController`** - A Reactive Controller for use with Lit and other libraries that support the pattern
-
-2. **`Localize`** - A standalone class for use in any custom element or JavaScript context
-
-#### Using the Reactive Controller (Lit)
-
 You can use Squeak with any library that supports [Lit's Reactive Controller pattern](https://lit.dev/docs/composition/controllers/). In Lit, a localized custom element will look something like this.
 
 ```ts
 import { LitElement, html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { LocalizeReactiveController } from '@quietui/squeak';
+import { Localize } from '@quietui/squeak/dist/index.js';
 
 @customElement('my-element')
 export class MyElement extends LitElement {
-  private localize = new LocalizeReactiveController(this).localize;
+  private localize = new Localize(this);
 
   // Make sure to make `dir` and `lang` reactive so the component will respond to changes to its own attributes
   @property() dir: string;
@@ -204,10 +196,10 @@ export class MyElement extends LitElement {
       ${this.localize.number(1000, { style: 'currency', currency: 'USD'})}
 
       <!-- Dates -->
-      ${this.localize.date('2021-09-15 14:00:00 ET', { month: 'long', day: 'numeric', year: 'numeric' })}
+      ${this.localize.date('2021-09-15 14:00:00 ET'), { month: 'long', day: 'numeric', year: 'numeric' }}
 
       <!-- Relative times -->
-      ${this.localize.relativeTime(2, 'day', { style: 'short' })}
+      ${this.localize.relativeTime(2, 'day'), { style: 'short' }}
 
       <!-- Determining language -->
       ${this.localize.lang()}
@@ -219,79 +211,43 @@ export class MyElement extends LitElement {
 }
 ```
 
-The Reactive Controller automatically manages updates when the locale changes.
-
-#### Using the standalone Localize class
-
-If you're not using Lit or prefer manual control, you can use the `Localize` class directly. This is useful for vanilla JavaScript applications, third-party integrations, or any other context.
-
-```ts
-import { Localize } from '@quietui/squeak';
-
-// Create a localize instance (passing <html> or any element with lang/dir attributes)
-const localize = new Localize(document.documentElement);
-
-// Output a term
-console.log(localize.term('hello')); // Hello
-
-// Output a date
-console.log(localize.date(new Date(), { dateStyle: 'long' })); // November 9, 2025
-
-// Output a number
-console.log(localize.number(1000, { style: 'currency', currency: 'USD' })); // $1,000.00
-
-// Output a relative time
-console.log(localize.relativeTime(-2, 'day')); // 2 days ago
-```
-
 ### Other methods
 
 - `this.localize.exists()` - Determines if the specified term exists, optionally checking the default translation.
-
-### Events
-
-When the document's language or direction changes, or when a new translation is registered, the `squeak-locale-change` event will be dispatched from the `<html>` element (accessible in JavaScript via `document.documentElement`). You can use this to respond to locale changes from third-party integrations or when using the standalone `Localize` class.
-
-```ts
-document.documentElement.addEventListener('squeak-locale-change', () => {
-  // Update your UI here
-});
-```
+- `this.localize.update()` - Forces all localized components to update. Most users won't ever need to call this.
 
 ## Typed translations and arguments
 
-Because translations are defined by the user, there's no way for TypeScript to automatically know about the terms you've defined. This means you won't get strongly typed arguments when calling `this.localize.term()`. However, you can solve this by extending `Translation` and `LocalizeReactiveController`.
+Because translations are defined by the user, there's no way for TypeScript to automatically know about the terms you've defined. This means you won't get strongly typed arguments when calling `this.localize.term()`. However, you can solve this by extending `Translation` and `Localize`.
 
 In a separate file, e.g. `my-localize.ts`, add the following code.
 
 ```ts
-import { LocalizeReactiveController } from '@quietui/squeak';
-import type { Translation } from '@quietui/squeak';
+import { Localize as DefaultLocalize } from '@quietui/squeak';
 
 // Extend the default controller with your custom translation
-export class LocalizeController extends LocalizeReactiveController<MyTranslation> {}
+export class Localize extends DefaultLocalize<MyTranslation> {}
 
-// Export helper functions so you can import everything from this file
-export { registerDefaultTranslation, registerTranslation } from '@quietui/squeak';
+// Export `registerTranslation` so you can import everything from this file
+export { registerTranslation } from '@quietui/squeak';
 
 // Define your translation terms here
 export interface MyTranslation extends Translation {
   myTerm: string;
   myOtherTerm: string;
-  myTermWithArgs: (count: number) => string;
+  myTermWithArgs: (count: string) => string;
 }
 ```
 
-Now you can import `LocalizeController` from your custom file and get strongly typed translations when you use `this.localize.term()`!
+Now you can import `MyLocalize` and get strongly typed translations when you use `this.localize.term()`!
 
 ## Advantages
 
-- Lightweight
 - Zero dependencies
+- Extremely lightweight
 - Supports simple terms, plurals, and complex translations
 - Supports dates, numbers, and currencies using built-in [`Intl` APIs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl)
 - Good DX for custom element authors and consumers
   - Intuitive API for custom element authors
   - Consumers only need to load the translations they want and set the `lang` attribute
-- Flexible integration options for non-Lit users
 - Translations can be loaded up front or on demand
