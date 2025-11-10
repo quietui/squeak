@@ -22,7 +22,7 @@ let defaultTranslation: Translation;
 
 // Don't run this block in an SSR environment
 if (!isSSR) {
-  const documentElementObserver = new MutationObserver(update);
+  const documentElementObserver = new MutationObserver(handleLocaleChange);
   documentDirection = document.documentElement.dir || 'ltr';
   documentLanguage = document.documentElement.lang || navigator.language;
 
@@ -36,7 +36,7 @@ if (!isSSR) {
 /** Registers the default (fallback) translation. */
 export function registerDefaultTranslation(translation: Translation) {
   defaultTranslation = translation;
-  update();
+  handleLocaleChange();
 }
 
 /** Registers one or more translations */
@@ -52,7 +52,7 @@ export function registerTranslation(...translation: Translation[]) {
     }
   });
 
-  update();
+  handleLocaleChange();
 }
 
 /** Updates all localized elements that are currently connected */
@@ -69,55 +69,19 @@ export function update() {
   });
 }
 
+function handleLocaleChange() {
+  document.documentElement.dispatchEvent(new CustomEvent('squeak-locale-change'));
+  update();
+}
+
 /**
- * Localize Reactive Controller for components built with Lit
- *
- * To use this controller, import the class and instantiate it in a custom element constructor:
- *
- * private localize = new Localize(this);
- *
- * This will add the element to the set and make it respond to changes to <html dir|lang> automatically. To make it
- * respond to changes to its own dir|lang properties, make it a property:
- *
- *   @property() dir: string;
- *   @property() lang: string;
- *
- * To use a translation method, call it like this:
- *
- *   ${this.localize.term('term_key_here')}
- *   ${this.localize.date('2021-12-03')}
- *   ${this.localize.number(1000000)}
+ * The Localize base class for translation functions.
  */
-export class Localize<UserTranslation extends Translation> implements ReactiveController {
-  host: ReactiveControllerHost & HTMLElement;
+export class Localize<UserTranslation extends Translation> {
+  host: HTMLElement;
 
   constructor(host: ReactiveControllerHost & HTMLElement) {
     this.host = host;
-    this.host.addController(this);
-  }
-
-  hostConnected() {
-    connectedElements.add(this.host);
-  }
-
-  hostDisconnected() {
-    connectedElements.delete(this.host);
-  }
-
-  /**
-   * Gets the host element's directionality as determined by the `dir` attribute. The return value is transformed to
-   * lowercase.
-   */
-  dir() {
-    return `${this.host.dir || documentDirection}`.toLowerCase();
-  }
-
-  /**
-   * Gets the host element's language as determined by the `lang` attribute. The return value is transformed to
-   * lowercase.
-   */
-  lang() {
-    return `${this.host.lang || documentLanguage}`.toLowerCase();
   }
 
   private getTranslationData(lang: string) {
@@ -132,8 +96,24 @@ export class Localize<UserTranslation extends Translation> implements ReactiveCo
     return { locale, language, region, primary, secondary };
   }
 
+  /**
+   * Gets the host element's directionality as determined by the `dir` attribute. The return value is transformed to
+   * lowercase.
+   */
+  public dir(): string {
+    return `${this.host.dir || documentDirection}`.toLowerCase();
+  }
+
+  /**
+   * Gets the host element's language as determined by the `lang` attribute. The return value is transformed to
+   * lowercase.
+   */
+  public lang(): string {
+    return `${this.host.lang || documentLanguage}`.toLowerCase();
+  }
+
   /** Determines if the specified term exists, optionally checking the default translation. */
-  exists<K extends keyof UserTranslation>(key: K, options: Partial<ExistsOptions>): boolean {
+  public exists<K extends keyof UserTranslation>(key: K, options: Partial<ExistsOptions>): boolean {
     const { primary, secondary } = this.getTranslationData(options.lang ?? this.lang());
 
     options = {
@@ -153,7 +133,7 @@ export class Localize<UserTranslation extends Translation> implements ReactiveCo
   }
 
   /** Outputs a translated term. */
-  term<K extends keyof UserTranslation>(key: K, ...args: FunctionParams<UserTranslation[K]>): string {
+  public term<K extends keyof UserTranslation>(key: K, ...args: FunctionParams<UserTranslation[K]>): string {
     const { primary, secondary } = this.getTranslationData(this.lang());
     let term: any;
 
@@ -177,19 +157,86 @@ export class Localize<UserTranslation extends Translation> implements ReactiveCo
   }
 
   /** Outputs a localized date in the specified format. */
-  date(dateToFormat: Date | string, options?: Intl.DateTimeFormatOptions): string {
+  public date(dateToFormat: Date | string, options?: Intl.DateTimeFormatOptions): string {
     dateToFormat = new Date(dateToFormat);
     return new Intl.DateTimeFormat(this.lang(), options).format(dateToFormat);
   }
 
   /** Outputs a localized number in the specified format. */
-  number(numberToFormat: number | string, options?: Intl.NumberFormatOptions): string {
+  public number(numberToFormat: number | string, options?: Intl.NumberFormatOptions): string {
     numberToFormat = Number(numberToFormat);
     return isNaN(numberToFormat) ? '' : new Intl.NumberFormat(this.lang(), options).format(numberToFormat);
   }
 
   /** Outputs a localized time in relative format. */
-  relativeTime(value: number, unit: Intl.RelativeTimeFormatUnit, options?: Intl.RelativeTimeFormatOptions): string {
+  public relativeTime(
+    value: number,
+    unit: Intl.RelativeTimeFormatUnit,
+    options?: Intl.RelativeTimeFormatOptions
+  ): string {
     return new Intl.RelativeTimeFormat(this.lang(), options).format(value, unit);
+  }
+}
+
+/**
+ * The Localize Reactive Controller for components built with Lit.
+ */
+export class LocalizeReactiveController<UserTranslation extends Translation> implements ReactiveController {
+  host: ReactiveControllerHost & HTMLElement;
+  localize: Localize<UserTranslation>;
+
+  constructor(host: ReactiveControllerHost & HTMLElement) {
+    this.host = host;
+    this.host.addController(this);
+    this.localize = new Localize(this.host);
+  }
+
+  hostConnected() {
+    connectedElements.add(this.host);
+  }
+
+  hostDisconnected() {
+    connectedElements.delete(this.host);
+  }
+
+  /**
+   * Gets the host element's directionality as determined by the `dir` attribute. The return value is transformed to
+   * lowercase.
+   */
+  public dir() {
+    return this.localize.dir();
+  }
+
+  /**
+   * Gets the host element's language as determined by the `lang` attribute. The return value is transformed to
+   * lowercase.
+   */
+  public lang() {
+    return this.localize.lang();
+  }
+
+  /** Determines if the specified term exists, optionally checking the default translation. */
+  public exists<K extends keyof UserTranslation>(key: K, options: Partial<ExistsOptions>) {
+    return this.localize.exists(key, options);
+  }
+
+  /** Outputs a translated term. */
+  public term<K extends keyof UserTranslation>(key: K, ...args: FunctionParams<UserTranslation[K]>) {
+    return this.localize.term(key, ...args);
+  }
+
+  /** Outputs a localized date in the specified format. */
+  public date(dateToFormat: Date | string, options?: Intl.DateTimeFormatOptions) {
+    return this.localize.date(dateToFormat, options);
+  }
+
+  /** Outputs a localized number in the specified format. */
+  public number(numberToFormat: number | string, options?: Intl.NumberFormatOptions) {
+    return this.localize.number(numberToFormat, options);
+  }
+
+  /** Outputs a localized time in relative format. */
+  public relativeTime(value: number, unit: Intl.RelativeTimeFormatUnit, options?: Intl.RelativeTimeFormatOptions) {
+    return this.localize.relativeTime(value, unit, options);
   }
 }
