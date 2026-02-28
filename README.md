@@ -115,10 +115,10 @@ const translation: Translation = {
   upload: 'Upload',
 
   // Terms with placeholders
-  greetUser: (name: string) => `Hello, ${name}!`,
+  greetUser: ({ name }: { name: string }) => `Hello, ${name}!`,
 
   // Plurals
-  numFilesSelected: (count: number) => {
+  numFilesSelected: ({ count }: { count: number }) => {
     if (count === 0) return 'No files selected';
     if (count === 1) return '1 file selected';
     return `${count} files selected`;
@@ -235,7 +235,7 @@ export { registerTranslation } from '@quietui/squeak';
 export interface MyTranslation extends Translation {
   myTerm: string;
   myOtherTerm: string;
-  myTermWithArgs: (count: string) => string;
+  myTermWithArgs: (params: { count: number }) => string;
 }
 ```
 
