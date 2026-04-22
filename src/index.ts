@@ -62,9 +62,10 @@ export function update() {
   documentDirection = document.documentElement.dir || 'ltr';
   documentLanguage = document.documentElement.lang || navigator.language;
 
-  [...connectedElements.keys()].map((el: LitElement) => {
-    if (typeof el.requestUpdate === 'function') {
-      el.requestUpdate();
+  [...connectedElements.keys()].map((el: HTMLElement) => {
+    const litEl = el as LitElement;
+    if (typeof litEl.requestUpdate === 'function') {
+      litEl.requestUpdate();
     }
   });
 }
@@ -121,10 +122,18 @@ export class Localize<UserTranslation extends Translation> implements ReactiveCo
   }
 
   private getTranslationData(lang: string) {
+    let locale: Intl.Locale | undefined;
+
     // Convert "en_US" to "en-US". Note that both underscores and dashes are allowed per spec, but underscores result in
     // a RangeError by the call to `new Intl.Locale()`. See: https://unicode.org/reports/tr35/#unicode-locale-identifier
-    const locale = new Intl.Locale(lang.replace(/_/g, '-'));
-    const language = locale?.language.toLowerCase();
+    // Invalid values (e.g. from Chrome's translate feature) also throw, so we fall back to the default translation.
+    try {
+      locale = new Intl.Locale(lang.replace(/_/g, '-'));
+    } catch {
+      locale = undefined;
+    }
+
+    const language = locale?.language.toLowerCase() ?? '';
     const region = locale?.region?.toLowerCase() ?? '';
     const primary = <UserTranslation>translations.get(`${language}-${region}`);
     const secondary = <UserTranslation>translations.get(language);
