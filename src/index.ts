@@ -1,6 +1,6 @@
 import type { LitElement, ReactiveController, ReactiveControllerHost } from 'lit';
 
-export type FunctionParams<T> = T extends (...args: infer U) => string ? U : [];
+export type FunctionParams<T> = T extends (params: infer P) => string ? [P] : [];
 
 export interface Translation {
   $code: string; // e.g. en, en-GB
@@ -179,7 +179,12 @@ export class Localize<UserTranslation extends Translation> implements ReactiveCo
     }
 
     if (typeof term === 'function') {
-      return term(...args) as string;
+      try {
+        return term(args[0]) as string;
+      } catch {
+        console.warn(`Translation term "${String(key)}" threw an error. Make sure all required parameters are provided.`);
+        return String(key);
+      }
     }
 
     return term;

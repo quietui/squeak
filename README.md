@@ -2,7 +2,7 @@
 
 Squeak is a tiny, zero-dependency library that provides a [Reactive Controller](https://lit.dev/docs/composition/controllers/) for localizing terms, dates, and numbers, and currency across one or more custom elements in a component library. It _does not_ aim to replicate a full-blown localization tool. For that, you should use something like [i18next](https://www.i18next.com/). 
 
-Reactive Controllers are supported by Lit out of the box, but they're designed to be generic so other libraries can elect to support them either natively or through an adapter. If you're favorite custom element authoring library doesn't support Reactive Controllers yet, consider asking the maintainers to add support for them!
+Reactive Controllers are supported by Lit out of the box, but they're designed to be generic so other libraries can elect to support them either natively or through an adapter. If your favorite custom element authoring library doesn't support Reactive Controllers yet, consider asking the maintainers to add support for them!
 
 ## Overview
 
@@ -115,10 +115,10 @@ const translation: Translation = {
   upload: 'Upload',
 
   // Terms with placeholders
-  greetUser: (name: string) => `Hello, ${name}!`,
+  greetUser: ({ name }: { name: string }) => `Hello, ${name}!`,
 
   // Plurals
-  numFilesSelected: (count: number) => {
+  numFilesSelected: ({ count }: { count: number }) => {
     if (count === 0) return 'No files selected';
     if (count === 1) return '1 file selected';
     return `${count} files selected`;
@@ -175,9 +175,9 @@ async function changeLanguage(lang) {
 You can use Squeak with any library that supports [Lit's Reactive Controller pattern](https://lit.dev/docs/composition/controllers/). In Lit, a localized custom element will look something like this.
 
 ```ts
-import { LitElement } from 'lit';
-import { customElement } from 'lit/decorators.js';
-import { Localize } from '@quietui/squeak/dist/lit.js';
+import { LitElement, html } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
+import { Localize } from '@quietui/squeak/dist/index.js';
 
 @customElement('my-element')
 export class MyElement extends LitElement {
@@ -235,7 +235,7 @@ export { registerTranslation } from '@quietui/squeak';
 export interface MyTranslation extends Translation {
   myTerm: string;
   myOtherTerm: string;
-  myTermWithArgs: (count: string) => string;
+  myTermWithArgs: (params: { count: number }) => string;
 }
 ```
 
