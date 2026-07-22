@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Fixed a bug where `lang()` returned invalid language tags verbatim, causing `date()`, `number()`, and `relativeTime()` to throw an unhandled `RangeError`; invalid tags now fall back to the default translation's language or `en`
+- Underscore-separated tags such as `en_US` are normalized to hyphens, e.g. `en-us`
+
 ## 3.0.1
 
 - Fixed a bug that caused an error to be logged in the console when `lang` was set to an invalid value

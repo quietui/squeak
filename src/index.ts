@@ -115,10 +115,24 @@ export class Localize<UserTranslation extends Translation> implements ReactiveCo
 
   /**
    * Gets the host element's language as determined by the `lang` attribute. The return value is transformed to
-   * lowercase.
+   * lowercase and normalized to a valid language tag.
+   *
+   * Chrome Translate and some browser extensions rewrite the document's `lang` attribute to a non-BCP-47 value such
+   * as "auto" at runtime, after components have rendered. Passing that verbatim to `Intl.NumberFormat`,
+   * `Intl.DateTimeFormat`, or `Intl.RelativeTimeFormat` throws `RangeError: Invalid language tag` — an error
+   * consumers can't catch or work around. Underscore-separated tags such as `en_US` are normalized to hyphens, and
+   * anything Intl still rejects falls back to the default translation's language, or `en` when no default translation
+   * is registered.
    */
   lang() {
-    return `${this.host.lang || documentLanguage}`.toLowerCase();
+    const lang = `${this.host.lang || documentLanguage}`.toLowerCase().replace(/_/g, '-');
+
+    try {
+      new Intl.Locale(lang);
+      return lang;
+    } catch {
+      return defaultTranslation?.$code.toLowerCase() ?? 'en';
+    }
   }
 
   private getTranslationData(lang: string) {
